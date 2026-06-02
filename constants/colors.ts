@@ -1,0 +1,17 @@
+export const colors = {
+  indigo: '#2C3E6B',
+  indigoDark: '#1E2D54',
+  terracotta: '#C8553D',
+  sand: '#F2E8D9',
+  sage: '#7A9E7E',
+  cream: '#FAF6F0',
+  charcoal: '#1E1E2E',
+  mid: '#6B6B7A',
+  green: '#2E7D32',
+  greenLight: '#E8F5E9',
+  orange: '#E65100',
+  orangeLight: '#FFF3E0',
+  red: '#C62828',
+  redLight: '#FFEBEE',
+  white: '#FFFFFF',
+};

@@ -1,0 +1,56 @@
+import React from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import TripCard from '../components/TripCard';
+import { mockTrips } from '../constants/mockData';
+import { colors } from '../constants/colors';
+
+export default function ResultsScreen() {
+  const router = useRouter();
+  const { destination } = useLocalSearchParams<{ destination: string }>();
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+          <Ionicons name="arrow-back" size={24} color={colors.white} />
+        </TouchableOpacity>
+        <View>
+          <Text style={styles.title}>Trajets disponibles</Text>
+          <Text style={styles.sub}>{destination ?? 'Destination'}</Text>
+        </View>
+      </View>
+
+      <View style={styles.aiBanner}>
+        <Text style={styles.aiBannerText}>🤖 L'IA a classé ces trajets selon votre profil</Text>
+      </View>
+
+      <FlatList
+        data={mockTrips}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => <TripCard trip={item} onPress={() => router.back()} />}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.cream },
+  header: {
+    backgroundColor: colors.indigo,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
+  back: { padding: 4 },
+  title: { color: colors.white, fontSize: 18, fontWeight: '700' },
+  sub: { color: 'rgba(255,255,255,0.7)', fontSize: 13 },
+  aiBanner: { backgroundColor: colors.indigo, marginHorizontal: 16, marginTop: 16, borderRadius: 12, padding: 12, opacity: 0.85 },
+  aiBannerText: { color: colors.white, fontSize: 13, fontWeight: '500' },
+  list: { padding: 16 },
+});
