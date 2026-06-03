@@ -34,6 +34,18 @@ export default function Layout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="detail"
+        options={{
+          href: null, // Masqué dans la tab bar, accessible via router.push
+        }}
+      />
+      <Tabs.Screen
+        name="confirmation"
+        options={{
+          href: null, // Masqué dans la tab bar, accessible via router.push
+        }}
+      />
     </Tabs>
   );
 }
