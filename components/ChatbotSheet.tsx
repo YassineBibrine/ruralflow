@@ -20,6 +20,9 @@ type Props = {
   onResult: (data: ExtractedTrip) => void;
 };
 
+const hasExtractedValue = (trip: ExtractedTrip | null) =>
+  Boolean(trip?.destination || trip?.date || trip?.heure);
+
 const extractLocalTrip = (value: string): ExtractedTrip => {
   const text = value.toLowerCase();
   const hasAny = (words: string[]) => words.some((word) => text.includes(word));
@@ -66,10 +69,10 @@ export default function ChatbotSheet({ visible, onClose, onResult }: Props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4o-mini',
           max_tokens: 150,
           messages: [
             {
@@ -83,7 +86,10 @@ Si une info manque mets null. Aucun texte autour du JSON.`,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message ?? 'openai-error');
+      if (!res.ok) {
+        const message = data.error?.message ?? `openai-http-${res.status}`;
+        throw new Error(res.status === 429 ? 'openai-quota' : message);
+      }
 
       const text = data.choices?.[0]?.message?.content ?? '';
       const clean = text.replace(/```json|```/g, '').trim();
@@ -96,11 +102,13 @@ Si une info manque mets null. Aucun texte autour du JSON.`,
       });
     } catch (err) {
       setExtracted(extractLocalTrip(input));
-      setErrorMessage(
-        err instanceof Error && err.message === 'missing-api-key'
-          ? "Clé OpenAI absente dans l'app lancée. Redémarrez Expo après modification du .env."
-          : "Analyse locale utilisée. Redémarrez Expo avec -c si vous venez d'ajouter la clé OpenAI."
-      );
+      if (err instanceof Error && err.message === 'missing-api-key') {
+        setErrorMessage("Clé OpenAI absente dans l'app lancée. Redémarrez Expo après modification du .env.");
+      } else if (err instanceof Error && err.message === 'openai-quota') {
+        setErrorMessage('Quota OpenAI dépassé ou crédit API indisponible. Mode local activé pour le prototype.');
+      } else {
+        setErrorMessage('OpenAI indisponible pour le moment. Mode local activé pour le prototype.');
+      }
     } finally {
       setLoading(false);
     }
@@ -160,8 +168,11 @@ Si une info manque mets null. Aucun texte autour du JSON.`,
           )}
 
           {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+          {extracted && !hasExtractedValue(extracted) && !loading && (
+            <Text style={styles.helpText}>Ajoutez une destination, par exemple Rabat, Casa, Kénitra, Gare ou Université.</Text>
+          )}
 
-          {!extracted ? (
+          {!hasExtractedValue(extracted) ? (
             <TouchableOpacity style={[styles.sendBtn, loading && { opacity: 0.5 }]} onPress={analyze} disabled={loading}>
               <Text style={styles.sendText}>Analyser avec l'IA →</Text>
             </TouchableOpacity>
@@ -169,8 +180,10 @@ Si une info manque mets null. Aucun texte autour du JSON.`,
             <TouchableOpacity
               style={styles.sendBtn}
               onPress={() => {
-                onResult(extracted);
-                onClose();
+                if (extracted) {
+                  onResult(extracted);
+                  onClose();
+                }
               }}
             >
               <Text style={styles.sendText}>Voir les trajets →</Text>
@@ -202,6 +215,7 @@ const styles = StyleSheet.create({
   resultChip: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   resultChipText: { color: colors.white, fontSize: 13, fontWeight: '600' },
   errorText: { color: colors.red, fontSize: 13, marginBottom: 12 },
+  helpText: { color: colors.mid, fontSize: 13, marginBottom: 12 },
   sendBtn: { backgroundColor: colors.terracotta, borderRadius: 14, padding: 16, alignItems: 'center', marginBottom: 12 },
   sendText: { color: colors.white, fontWeight: '700', fontSize: 16 },
   cancel: { alignItems: 'center', padding: 10 },

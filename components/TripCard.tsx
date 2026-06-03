@@ -17,9 +17,9 @@ type Trip = {
   isAIRecommended: boolean;
 };
 
-type Props = { trip: Trip; onPress: () => void };
+type Props = { trip: Trip; isReserved?: boolean; onPress: () => void };
 
-export default function TripCard({ trip, onPress }: Props) {
+export default function TripCard({ trip, isReserved = false, onPress }: Props) {
   return (
     <View style={styles.card}>
       {trip.isAIRecommended && (
@@ -56,8 +56,10 @@ export default function TripCard({ trip, onPress }: Props) {
 
       <View style={styles.footer}>
         <PriceBadge price={trip.price} />
-        <TouchableOpacity style={styles.btn} onPress={onPress}>
-          <Text style={styles.btnText}>Réserver</Text>
+        <TouchableOpacity style={[styles.btn, isReserved && styles.btnReserved]} onPress={onPress}>
+          <Text style={[styles.btnText, isReserved && styles.btnReservedText]}>
+            {isReserved ? 'Réservé' : 'Réserver'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -97,4 +99,6 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
   btn: { borderWidth: 1.5, borderColor: colors.indigo, borderRadius: 10, paddingHorizontal: 18, paddingVertical: 8 },
   btnText: { color: colors.indigo, fontWeight: '600', fontSize: 13 },
+  btnReserved: { backgroundColor: colors.sage, borderColor: colors.sage },
+  btnReservedText: { color: colors.white },
 });
