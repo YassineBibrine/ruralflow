@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Platform, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import TripCard from '../components/TripCard';
@@ -9,14 +9,9 @@ import { colors } from '../constants/colors';
 export default function ResultsScreen() {
   const router = useRouter();
   const { destination } = useLocalSearchParams<{ destination: string }>();
-  const [reservedTripId, setReservedTripId] = React.useState<string | null>(null);
 
   const handleReserve = (trip: (typeof mockTrips)[number]) => {
-    setReservedTripId(trip.id);
-    Alert.alert(
-      'Réservation confirmée',
-      `Votre place avec ${trip.driver} à ${trip.departureTime} est pré-réservée. Prix fixe : ${trip.price} DH.`
-    );
+    router.push({ pathname: '/detail', params: { tripId: trip.id } });
   };
 
   return (
@@ -40,7 +35,7 @@ export default function ResultsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <TripCard trip={item} isReserved={reservedTripId === item.id} onPress={() => handleReserve(item)} />
+          <TripCard trip={item} onPress={() => handleReserve(item)} />
         )}
       />
     </SafeAreaView>
