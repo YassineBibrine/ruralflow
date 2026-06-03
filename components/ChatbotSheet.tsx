@@ -20,19 +20,48 @@ type Props = {
   onResult: (data: ExtractedTrip) => void;
 };
 
+const extractLocalTrip = (value: string): ExtractedTrip => {
+  const text = value.toLowerCase();
+  const hasAny = (words: string[]) => words.some((word) => text.includes(word));
+
+  let destination: string | null = null;
+  if (hasAny(['rabat'])) destination = 'Rabat';
+  else if (hasAny(['casa', 'casablanca', 'kaza', 'كازا'])) destination = 'Casablanca';
+  else if (hasAny(['kenitra', 'kénitra', 'القنيطرة'])) destination = 'Kénitra';
+  else if (hasAny(['universite', 'université', 'fac', 'campus'])) destination = 'Université';
+  else if (hasAny(['hopital', 'hôpital'])) destination = 'Hôpital';
+  else if (hasAny(['gare'])) destination = 'Gare';
+  else if (hasAny(['marche', 'marché'])) destination = 'Marché';
+
+  let date: string | null = null;
+  if (hasAny(['demain', 'dman', 'غدا'])) date = 'demain';
+  else if (hasAny(["aujourd'hui", 'today', 'lyoum', 'اليوم'])) date = "aujourd'hui";
+
+  let heure: string | null = null;
+  const hourMatch = text.match(/\b([0-2]?\d)\s?(h|:)\s?([0-5]\d)?\b/);
+  if (hourMatch) heure = hourMatch[3] ? `${hourMatch[1]}h${hourMatch[3]}` : `${hourMatch[1]}h`;
+  else if (hasAny(['matin', 'sbah', 'الصباح'])) heure = 'matin';
+  else if (hasAny(['soir', 'lil', 'ليل'])) heure = 'soir';
+
+  return { destination, date, heure };
+};
+
 export default function ChatbotSheet({ visible, onClose, onResult }: Props) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [extracted, setExtracted] = useState<ExtractedTrip | null>(null);
-  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const analyze = async () => {
     if (!input.trim()) return;
     setLoading(true);
-    setError(false);
+    setErrorMessage(null);
     setExtracted(null);
 
     try {
+      const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+      if (!apiKey) throw new Error('missing-api-key');
+
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -54,12 +83,24 @@ Si une info manque mets null. Aucun texte autour du JSON.`,
         }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message ?? 'openai-error');
+
       const text = data.choices?.[0]?.message?.content ?? '';
       const clean = text.replace(/```json|```/g, '').trim();
       const parsed: ExtractedTrip = JSON.parse(clean);
-      setExtracted(parsed);
-    } catch {
-      setError(true);
+      const fallback = extractLocalTrip(input);
+      setExtracted({
+        destination: parsed.destination ?? fallback.destination,
+        date: parsed.date ?? fallback.date,
+        heure: parsed.heure ?? fallback.heure,
+      });
+    } catch (err) {
+      setExtracted(extractLocalTrip(input));
+      setErrorMessage(
+        err instanceof Error && err.message === 'missing-api-key'
+          ? "Clé OpenAI absente dans l'app lancée. Redémarrez Expo après modification du .env."
+          : "Analyse locale utilisée. Redémarrez Expo avec -c si vous venez d'ajouter la clé OpenAI."
+      );
     } finally {
       setLoading(false);
     }
@@ -118,7 +159,7 @@ Si une info manque mets null. Aucun texte autour du JSON.`,
             </View>
           )}
 
-          {error && <Text style={styles.errorText}>Connexion requise pour l'IA</Text>}
+          {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
           {!extracted ? (
             <TouchableOpacity style={[styles.sendBtn, loading && { opacity: 0.5 }]} onPress={analyze} disabled={loading}>

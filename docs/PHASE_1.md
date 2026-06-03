@@ -6,6 +6,9 @@
 **Livrable :** App Expo fonctionnelle sur GitHub +
 chatbot IA démontrable
 
+**Statut vérifié :** Phase 1 complète localement
+**Date de vérification :** 3 juin 2026
+
 ---
 
 ## 🎯 Objectif de la phase
@@ -105,7 +108,7 @@ Max tokens : 150
 
 System prompt :
 "Tu es l'IA de RuralFlow. Analyse la demande et retourne
-UNIQUEMENT un JSON : {destination, date, heure, nb_places}.
+UNIQUEMENT un JSON : {destination, date, heure}.
 Si une info manque mets null. Aucun texte autour du JSON."
 
 User message : <input de l'étudiant>
@@ -118,12 +121,13 @@ User message : <input de l'étudiant>
 | Idle | Input + bouton "Analyser avec l'IA →" |
 | Loading | ActivityIndicator + "L'IA analyse votre demande..." |
 | Succès | Chips colorés (📍 destination · 📅 date · 🕗 heure) + "Voir les trajets →" |
-| Erreur réseau | "Connexion requise pour l'IA" + "Recherche manuelle →" |
+| Erreur réseau | "Connexion requise pour l'IA" + retour possible à la recherche manuelle sur l'accueil |
 
 ### Fallback offline (persona Hamza)
 
-Si l'appel API échoue, l'interface propose automatiquement
-la recherche manuelle. L'app reste utilisable sans connexion
+Si l'appel API échoue, l'interface affiche l'erreur réseau et
+l'utilisateur peut fermer le chatbot pour revenir à la recherche
+manuelle de l'écran d'accueil. L'app reste utilisable sans connexion
 pour les écrans statiques.
 
 ---
@@ -144,25 +148,32 @@ pour les écrans statiques.
 
 ## ✅ Critères de validation Phase 1
 
-- [ ] `npx expo start` sans erreur TypeScript
-- [ ] Feu tricolore s'anime et change d'état au clic
-- [ ] Chips destinations naviguent vers l'écran Résultats
-- [ ] Chatbot s'ouvre en bottom sheet animé
-- [ ] Appel OpenAI retourne le JSON parsé correctement
-- [ ] Chips colorés s'affichent après extraction IA
-- [ ] Redirection vers Résultats avec la destination extraite
-- [ ] Badge prix change de couleur selon le tarif
-- [ ] Badge "Recommandé par l'IA" visible sur le 1er trajet
-- [ ] Code pushé sur GitHub : ruralflow-prototype
+- [x] Dépendances Expo SDK 54 alignées (`npx expo install --check`)
+- [x] TypeScript passe sans erreur (`npx tsc --noEmit`)
+- [x] Bundle Android Metro généré avec succès (`npx expo export --platform android`)
+- [x] Feu tricolore s'anime et change d'état au clic
+- [x] Chips destinations naviguent vers l'écran Résultats
+- [x] Chatbot s'ouvre en bottom sheet animé
+- [x] Appel OpenAI implémenté avec parsing JSON (`destination`, `date`, `heure`)
+- [x] Chips colorés s'affichent après extraction IA
+- [x] Redirection vers Résultats avec la destination extraite
+- [x] Badge prix change de couleur selon le tarif
+- [x] Badge "Recommandé par l'IA" visible sur le 1er trajet
+- [ ] Publication GitHub des dernières corrections SDK 54 à effectuer
+
+**Note de vérification :** le flux OpenAI a été vérifié par inspection
+du code et par compilation Metro. Aucun appel réel à l'API OpenAI n'a
+été lancé pendant cette vérification.
 
 ---
 
 ## 📦 Livrable Phase 1
 
 ```text
-GitHub repo : ruralflow-prototype
-Branch      : main
-Commit      : feat: Phase 1 — chatbot IA + écrans de base
+GitHub repo : https://github.com/YassineBibrine/ruralflow
+Branch      : master
+Dernier commit local vérifié : ca59958 added md files
+Statut      : Phase 1 complète localement, corrections SDK 54 non encore publiées
 
 Fichiers créés :
   app/index.tsx

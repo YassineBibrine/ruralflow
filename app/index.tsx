@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import TrafficLight from '../components/TrafficLight';
@@ -68,7 +68,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.indigo },
+  safe: { flex: 1, backgroundColor: colors.indigo, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   header: { backgroundColor: colors.indigo, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 },
   appName: { color: colors.white, fontSize: 28, fontWeight: '800' },
   appSub: { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 2 },
