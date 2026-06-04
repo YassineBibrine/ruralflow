@@ -166,15 +166,15 @@ app/confirmation.tsx     Écran confirmation + SMS fallback
 
 ## ✅ Critères de validation Phase 2
 
-- [ ] Navigation complète Accueil → Résultats → Détail →
+- [✅ ] Navigation complète Accueil → Résultats → Détail →
       Confirmation → Accueil fonctionne sans erreur
-- [ ] Bloc prix transparent affiche le détail ligne par ligne
-- [ ] Score IA conducteur affiché avec barres de progression
-- [ ] Animation checkmark à l'entrée sur l'écran Confirmation
-- [ ] Countdown départ décrémente en temps réel
-- [ ] Notice SMS visible sur l'écran Confirmation
-- [ ] Bouton "Retour à l'accueil" ramène bien à index.tsx
-- [ ] Commit pushé sur GitHub : feat: Phase 2
+- [✅ ] Bloc prix transparent affiche le détail ligne par ligne
+- [ ✅] Score IA conducteur affiché avec barres de progression
+- [ ✅] Animation checkmark à l'entrée sur l'écran Confirmation
+- [✅ ] Countdown départ décrémente en temps réel
+- [✅ ] Notice SMS visible sur l'écran Confirmation
+- [✅ ] Bouton "Retour à l'accueil" ramène bien à index.tsx
+- [✅ ] Commit pushé sur GitHub : feat: Phase 2
 
 ---
 
