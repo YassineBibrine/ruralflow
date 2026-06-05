@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RuralFlow — Démo Prototype</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --indigo: #2C3E6B; --indigo-dark: #1E2D54; --terra: #C8553D;
+  --sand: #F2E8D9; --sage: #7A9E7E; --cream: #FAF6F0;
+  --charcoal: #1E1E2E; --mid: #6B6B7A;
+  --green: #2E7D32; --green-bg: #E8F5E9;
+  --orange: #E65100; --orange-bg: #FFF3E0;
+  --red: #C62828; --red-bg: #FFEBEE;
+  --white: #fff;
+}
+body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 24px 16px; }
+.page-title { color: #fff; font-size: 28px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; }
+.page-sub { color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 28px; }
+.badge { display: inline-block; background: var(--terra); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+
+.phone { width: 360px; height: 720px; background: var(--cream); border-radius: 40px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 10px #111, 0 0 0 11px #333; position: relative; display: flex; flex-direction: column; }
+.screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.screen.active { display: flex; }
+
+.hdr { background: var(--indigo); padding: 22px 20px 18px; flex-shrink: 0; }
+.hdr-row { display: flex; align-items: center; gap: 10px; }
+.hdr h1 { color: #fff; font-size: 24px; font-weight: 800; }
+.hdr p { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 2px; }
+.back-btn { color: #fff; font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
+.hdr-title { color: #fff; font-size: 16px; font-weight: 700; }
+.hdr-sub { color: rgba(255,255,255,0.65); font-size: 11px; }
+
+.scroll { flex: 1; overflow-y: auto; padding: 16px; background: var(--cream); }
+.scroll::-webkit-scrollbar { display: none; }
+
+.tl-card { background: var(--indigo-dark); border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 14px; }
+.tl-eyebrow { color: rgba(255,255,255,0.5); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+.tl-lights { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 14px; }
+.tl-circle { width: 48px; height: 48px; border-radius: 50%; opacity: 0.15; transition: opacity 0.4s, transform 0.4s; }
+.tl-circle.active { opacity: 1; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
+.tl-label { color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+.tl-meta { color: rgba(255,255,255,0.35); font-size: 10px; margin-bottom: 12px; }
+.tl-sim { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+.sim-btn { border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 9px; color: rgba(255,255,255,0.65); font-size: 10px; cursor: pointer; background: none; transition: all 0.2s; }
+.sim-btn:hover, .sim-btn.on { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.5); }
+
+.lbw-toggle { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 5px 12px; margin-top: 10px; cursor: pointer; border: none; width: fit-content; }
+.lbw-dot { width: 7px; height: 7px; border-radius: 50%; background: #4CAF50; transition: background 0.3s; }
+.lbw-dot.slow { background: #FF9800; }
+.lbw-txt { color: rgba(255,255,255,0.65); font-size: 10px; }
+
+.search-row { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 12px; padding: 11px 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.search-row input { flex: 1; border: none; outline: none; font-size: 14px; color: var(--charcoal); background: transparent; }
+.chips-row { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 2px; }
+.chips-row::-webkit-scrollbar { display: none; }
+.chip { background: var(--sand); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--indigo); font-weight: 600; cursor: pointer; white-space: nowrap; border: none; transition: background 0.2s; }
+.chip:hover { background: #e8dccf; }
+.cta-btn { background: var(--indigo); border-radius: 12px; padding: 15px; text-align: center; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; border: none; width: 100%; transition: opacity 0.2s; }
+.cta-btn:hover { opacity: 0.88; }
+
+.fab { position: absolute; bottom: 72px; right: 16px; width: 50px; height: 50px; border-radius: 50%; background: var(--terra); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(200,85,61,0.5); border: none; font-size: 20px; color: #fff; z-index: 10; }
+
+.ai-banner { background: var(--indigo); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; opacity: 0.85; }
+.ai-banner p { color: #fff; font-size: 12px; font-weight: 500; }
+
+.trip-card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.trip-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.ai-badge { background: var(--terra); border-radius: 20px; padding: 3px 10px; display: inline-block; margin-bottom: 8px; }
+.ai-badge span { color: #fff; font-size: 10px; font-weight: 600; }
+.driver-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 15px; flex-shrink: 0; }
+.driver-name { font-weight: 700; font-size: 15px; color: var(--charcoal); }
+.rating-row { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+.star { color: #FFC107; font-size: 12px; }
+.rating-txt { font-size: 12px; color: var(--mid); }
+.detail-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-size: 12px; color: var(--charcoal); }
+.urgent { color: var(--terra); font-weight: 600; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.price-badge { border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 600; }
+.price-green { background: var(--green-bg); color: var(--green); }
+.price-orange { background: var(--orange-bg); color: var(--orange); }
+.price-red { background: var(--red-bg); color: var(--red); }
+.reserve-btn { border: 1.5px solid var(--indigo); border-radius: 8px; padding: 6px 14px; color: var(--indigo); font-size: 12px; font-weight: 600; cursor: pointer; background: none; transition: all 0.2s; }
+.reserve-btn:hover { background: var(--indigo); color: #fff; }
+.reserve-btn.reserved { background: var(--sage); border-color: var(--sage); color: #fff; }
+
+.card-block { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.section-title { font-size: 10px; font-weight: 700; color: var(--mid); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 12px; }
+.score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.score-label { width: 85px; font-size: 11px; color: var(--charcoal); font-weight: 500; }
+.score-track { flex: 1; height: 6px; background: var(--sand); border-radius: 3px; overflow: hidden; }
+.score-fill { height: 6px; border-radius: 3px; }
+.score-pct { width: 28px; font-size: 11px; font-weight: 700; color: var(--charcoal); text-align: right; }
+.price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+.price-lbl { color: var(--mid); }
+.price-val { color: var(--charcoal); font-weight: 500; }
+.divider { height: 1px; background: var(--sand); margin: 8px 0; }
+.route-viz { display: flex; align-items: center; margin-bottom: 8px; }
+.route-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--indigo); flex-shrink: 0; }
+.route-dot.end { background: var(--terra); }
+.route-line { flex: 1; height: 2px; background: var(--sand); }
+.route-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--charcoal); margin-bottom: 10px; }
+.btn-primary { background: var(--indigo); border-radius: 12px; padding: 14px; text-align: center; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; border: none; width: 100%; margin-bottom: 10px; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-outline { border: 1.5px solid var(--indigo); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; background: none; width: 100%; color: var(--indigo); font-weight: 600; font-size: 14px; }
+
+.confirm-wrap { display: flex; flex-direction: column; align-items: center; padding: 24px 20px 40px; }
+.check-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 38px; color: #fff; margin-bottom: 18px; animation: popIn 0.5s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+.confirm-title { font-size: 22px; font-weight: 800; color: var(--charcoal); margin-bottom: 4px; text-align: center; }
+.confirm-sub { font-size: 13px; color: var(--mid); margin-bottom: 22px; text-align: center; }
+.countdown-card { width: 100%; background: var(--indigo-dark); border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.countdown-label { flex: 1; color: rgba(255,255,255,0.6); font-size: 13px; }
+.countdown-time { color: #fff; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sms-card { width: 100%; background: var(--sand); border-radius: 12px; padding: 14px; display: flex; gap: 10px; margin-bottom: 20px; }
+.sms-title { font-size: 13px; font-weight: 700; color: var(--charcoal); margin-bottom: 2px; }
+.sms-sub { font-size: 11px; color: var(--mid); }
+.home-btn { width: 100%; background: var(--indigo); border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; border: none; }
+
+.nav-bar { display: flex; background: #fff; border-top: 1px solid #eee; padding: 8px 0 10px; flex-shrink: 0; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+.nav-icon { font-size: 18px; }
+.nav-lbl { font-size: 9px; color: var(--mid); }
+.nav-item.active .nav-lbl { color: var(--indigo); font-weight: 700; }
+
+.modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end; z-index: 50; }
+.chatbot-sheet { background: var(--cream); border-radius: 20px 20px 0 0; padding: 20px 20px 28px; }
+.sheet-handle { width: 36px; height: 3px; background: var(--mid); border-radius: 2px; margin: 0 auto 16px; opacity: 0.4; }
+.sheet-title { font-size: 18px; font-weight: 700; color: var(--charcoal); margin-bottom: 3px; }
+.sheet-sub { font-size: 12px; color: var(--mid); margin-bottom: 12px; }
+.example-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.ex-chip { background: var(--sand); border-radius: 20px; padding: 4px 10px; font-size: 11px; color: var(--charcoal); cursor: pointer; }
+.ex-chip:hover { background: #e8dccf; }
+.sheet-input { width: 100%; background: var(--sand); border: none; border-radius: 10px; padding: 12px; font-size: 14px; color: var(--charcoal); min-height: 68px; resize: none; font-family: inherit; outline: none; margin-bottom: 12px; }
+.result-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.res-chip { border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: #fff; }
+.send-btn { width: 100%; background: var(--terra); border: none; border-radius: 12px; padding: 13px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; margin-bottom: 8px; }
+.send-btn:hover { opacity: 0.88; }
+.cancel-btn { width: 100%; background: none; border: none; padding: 8px; color: var(--mid); font-size: 14px; cursor: pointer; }
+
+.lbw-screen { background: #fff; flex: 1; padding: 48px 24px 24px; overflow-y: auto; }
+.lbw-title { font-size: 22px; font-weight: 800; color: #000; margin-bottom: 4px; }
+.lbw-meta { font-size: 11px; color: #555; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+.lbw-badge { background: #000; color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 2px; margin-left: 6px; }
+.lbw-input-row { display: flex; gap: 8px; margin-bottom: 20px; }
+.lbw-input { flex: 1; border: 1px solid #000; padding: 10px; font-size: 14px; outline: none; }
+.lbw-go { border: 1px solid #000; padding: 10px 16px; font-size: 16px; background: none; cursor: pointer; }
+.lbw-link { padding: 12px 0; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.lbw-link:hover { background: #f9f9f9; }
+.lbw-back { margin-top: 20px; background: none; border: 1px solid #000; padding: 8px 16px; font-size: 12px; cursor: pointer; }
+
+.hint { color: rgba(255,255,255,0.35); font-size: 11px; margin-top: 20px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="page-title">RuralFlow <span class="badge">Phase 3</span></div>
+<p class="page-sub">Prototype Design Thinking · Master IA-OC · Ibn Tofail 2026</p>
+
+<div class="phone" id="phone">
+
+  <!-- ═══ ACCUEIL ═══ -->
+  <div class="screen active" id="screen-home">
+    <div class="hdr">
+      <h1>RuralFlow</h1>
+      <p>Mobilité étudiante intelligente</p>
+      <button class="lbw-toggle" onclick="toggleLBW()">
+        <div class="lbw-dot" id="lbw-dot"></div>
+        <span class="lbw-txt" id="lbw-txt">Réseau normal</span>
+      </button>
+    </div>
+    <div class="scroll">
+      <div class="tl-card">
+        <div class="tl-eyebrow">Disponibilité prédictive IA</div>
+        <div class="tl-lights">
+          <div class="tl-circle" id="tl-green" style="background:#4CAF50"></div>
+          <div class="tl-circle" id="tl-orange" style="background:#FF9800"></div>
+          <div class="tl-circle" id="tl-red" style="background:#F44336"></div>
+        </div>
+        <div class="tl-label" id="tl-label">Chargement...</div>
+        <div class="tl-meta" id="tl-meta"></div>
+        <div class="tl-sim">
+          <button class="sim-btn" onclick="sim(8,1)">8h Rush</button>
+          <button class="sim-btn" onclick="sim(12,1)">12h Midi</button>
+          <button class="sim-btn" onclick="sim(17,1)">17h Retour</button>
+          <button class="sim-btn" onclick="sim(22,1)">22h Nuit</button>
+          <button class="sim-btn" onclick="sim(10,0)">Dimanche</button>
+        </div>
+      </div>
+      <div class="search-row">
+        <span style="color:var(--mid)">📍</span>
+        <input type="text" id="search-input" placeholder="Où allez-vous ?" />
+      </div>
+      <div class="chips-row">
+        <button class="chip" onclick="goResults('Université')">Université</button>
+        <button class="chip" onclick="goResults('Hôpital')">Hôpital</button>
+        <button class="chip" onclick="goResults('Gare')">Gare</button>
+        <button class="chip" onclick="goResults('Marché')">Marché</button>
+        <button class="chip" onclick="goResults('Centre-ville')">Centre-ville</button>
+      </div>
+      <button class="cta-btn" onclick="goResults(document.getElementById('search-input').value||'Destination')">Voir les trajets disponibles →</button>
+    </div>
+    <button class="fab" onclick="openBot()">💬</button>
+    <div class="nav-bar">
+      <div class="nav-item active"><span class="nav-icon">🏠</span><span class="nav-lbl">Accueil</span></div>
+      <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-lbl">Trajets</span></div>
+      <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-lbl">Mes résa</span></div>
+      <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-lbl">Profil</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ RÉSULTATS ═══ -->
+  <div class="screen" id="screen-results">
+    <div class="hdr">
+      <div class="hdr-row">
+        <span class="back-btn" onclick="show('home')">←</span>
+        <div>
+          <div class="hdr-title">Trajets disponibles</div>
+          <div class="hdr-sub" id="results-dest">Destination</div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll" id="trips-list"></div>
+    <div class="nav-bar">
+      <div class="nav-item"><span class="nav-icon">🏠</span><span class="nav-lbl">Accueil</span></div>
+      <div class="nav-item active"><span class="nav-icon">🔍</span><span class="nav-lbl">Trajets</span></div>
+      <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-lbl">Mes résa</span></div>
+      <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-lbl">Profil</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ DÉTAIL ═══ -->
+  <div class="screen" id="screen-detail">
+    <div class="hdr">
+      <div class="hdr-row">
+        <span class="back-btn" onclick="show('results')">←</span>
+        <div><div class="hdr-title">Détail du trajet</div></div>
+      </div>
+    </div>
+    <div class="scroll" id="detail-content"></div>
+    <div class="nav-bar">
+      <div class="nav-item"><span class="nav-icon">🏠</span><span class="nav-lbl">Accueil</span></div>
+      <div class="nav-item active"><span class="nav-icon">🔍</span><span class="nav-lbl">Trajets</span></div>
+      <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-lbl">Mes résa</span></div>
+      <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-lbl">Profil</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ CONFIRMATION ═══ -->
+  <div class="screen" id="screen-confirm" style="overflow-y:auto;">
+    <div class="confirm-wrap" id="confirm-content"></div>
+  </div>
+
+  <!-- ═══ MODE DÉGRADÉ 2G ═══ -->
+  <div class="screen" id="screen-lbw">
+    <div class="lbw-screen">
+      <div class="lbw-title">RuralFlow</div>
+      <div class="lbw-meta">Mode réseau lent · SMS activé<span class="lbw-badge">2G</span></div>
+      <div class="lbw-input-row">
+        <input class="lbw-input" id="lbw-dest" placeholder="Destination" />
+        <button class="lbw-go" onclick="lbwSearch()">→</button>
+      </div>
+      <div class="lbw-link" onclick="lbwGo('Université')">Université <span>→</span></div>
+      <div class="lbw-link" onclick="lbwGo('Hôpital')">Hôpital <span>→</span></div>
+      <div class="lbw-link" onclick="lbwGo('Gare')">Gare <span>→</span></div>
+      <div class="lbw-link" onclick="lbwGo('Marché')">Marché <span>→</span></div>
+      <button class="lbw-back" onclick="toggleLBW()">← Retour mode normal</button>
+    </div>
+  </div>
+
+  <!-- ═══ CHATBOT ═══ -->
+  <div class="modal-overlay" id="bot-modal" style="display:none;" onclick="if(event.target===this)closeBot()">
+    <div class="chatbot-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Assistant RuralFlow 🤖</div>
+      <div class="sheet-sub">Décris ton trajet en français, arabe ou darija</div>
+      <div class="example-chips">
+        <span class="ex-chip" onclick="fillBot('je pars demain à 8h pour Rabat')">je pars demain à 8h pour Rabat</span>
+        <span class="ex-chip" onclick="fillBot('غدا الصباح كازا')">غدا الصباح كازا</span>
+        <span class="ex-chip" onclick="fillBot('dman sbah l kénitra')">dman sbah l kénitra</span>
+      </div>
+      <textarea class="sheet-input" id="bot-input" placeholder="Ex: je veux aller à Rabat demain matin"></textarea>
+      <div class="result-chips" id="bot-results" style="display:none;"></div>
+      <button class="send-btn" id="bot-btn" onclick="analyzeBot()">Analyser avec l'IA →</button>
+      <button class="cancel-btn" onclick="closeBot()">Annuler</button>
+    </div>
+  </div>
+
+</div>
+
+<p class="hint">Cliquez sur les boutons pour naviguer · Projet Design Thinking — Mai-Juin 2026</p>
+
+<script>
+const TRIPS = [
+  { id:'1', driver:'Karim B.',  initials:'KB', color:'#2C3E6B', rating:4.9, time:'8h15', min:8,  seats:2, price:6,  ai:true  },
+  { id:'2', driver:'Fatima Z.', initials:'FZ', color:'#C8553D', rating:4.7, time:'8h30', min:23, seats:3, price:10, ai:false },
+  { id:'3', driver:'Hassan M.', initials:'HM', color:'#7A9E7E', rating:4.8, time:'8h45', min:38, seats:1, price:7,  ai:false },
+  { id:'4', driver:'Aicha R.',  initials:'AR', color:'#D4933A', rating:4.5, time:'9h00', min:53, seats:4, price:13, ai:false },
+];
+const reserved = {};
+let currentTrip = null;
+let simH = null, simDay = null, simInterval = null;
+let lbw = false;
+let cdInterval = null;
+
+// ── Feu tricolore prédictif ───────────────────────────────────────────────
+function predict(h, day) {
+  const month = new Date().getMonth();
+  const isExam = month >= 4 && month <= 5;
+  if (day === 0) return { s:'red',    l:'Aucun trajet · Prochain: demain 7h30' };
+  if (day === 6) return { s:'orange', l:'Disponibilité faible · Réservez à l\'avance' };
+  if (h < 6 || h > 21) return { s:'red', l:'Aucun trajet · Prochain: demain 7h30' };
+  if (h >= 7 && h <= 9)  return { s:'green',  l:(isExam?6:3)+' trajets disponibles · Forte demande' };
+  if (h >= 16 && h <= 18) return { s:'green', l:'4 trajets disponibles · Forte demande' };
+  if (isExam && h >= 7 && h <= 10) return { s:'green', l:'5 trajets disponibles · Période d\'examens' };
+  return { s:'orange', l:'Disponibilité faible · Réservez à l\'avance' };
+}
+
+function updateTL() {
+  const now = new Date();
+  const h   = simH   !== null ? simH   : now.getHours();
+  const day  = simDay !== null ? simDay : now.getDay();
+  const p = predict(h, day);
+  ['green','orange','red'].forEach(c => {
+    const el = document.getElementById('tl-'+c);
+    el.style.opacity = '0.15';
+    el.classList.remove('active');
+  });
+  const el = document.getElementById('tl-'+p.s);
+  el.style.opacity = '1';
+  el.classList.add('active');
+  document.getElementById('tl-label').textContent = p.l;
+  const t = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('tl-meta').textContent = (simH!==null?`Simulation ${simH}h00`:t) + ' · Mise à jour auto';
+}
+
+function sim(h, day) {
+  simH = h; simDay = day;
+  document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('on'));
+  event.target.classList.add('on');
+  updateTL();
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function show(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+}
+
+function goResults(dest) {
+  document.getElementById('results-dest').textContent = dest || 'Destination';
+  renderTrips();
+  show('results');
+}
+
+function pClass(p) { return p<=8?'price-green':p<=12?'price-orange':'price-red'; }
+function pLabel(p) { return p<=8?'Économique ✓':p<=12?'Moyen':'Élevé ↑'; }
+
+function renderTrips() {
+  const el = document.getElementById('trips-list');
+  el.innerHTML = '<div class="ai-banner"><p>🤖 L\'IA a classé ces trajets selon votre profil</p></div>';
+  TRIPS.forEach(t => {
+    const isRes = reserved[t.id];
+    const div = document.createElement('div');
+    div.className = 'trip-card';
+    div.innerHTML = `
+      ${t.ai?'<div class="ai-badge"><span>⭐ Recommandé par l\'IA</span></div>':''}
+      <div class="driver-row">
+        <div class="avatar" style="background:${t.color}">${t.initials}</div>
+        <div>
+          <div class="driver-name">${t.driver}</div>
+          <div class="rating-row"><span class="star">★</span><span class="rating-txt">${t.rating}</span></div>
+        </div>
+      </div>
+      <div class="detail-row">⏰ ${t.time} <span class="${t.min<15?'urgent':''}" style="margin-left:4px">dans ${t.min} min</span></div>
+      <div class="detail-row">👥 ${t.seats} places restantes</div>
+      <div class="card-footer">
+        <span class="price-badge ${pClass(t.price)}">${t.price} DH · ${pLabel(t.price)}</span>
+        <button class="reserve-btn${isRes?' reserved':''}" onclick="viewDetail('${t.id}')">${isRes?'Réservé ✓':'Réserver'}</button>
+      </div>`;
+    el.appendChild(div);
+  });
+}
+
+function viewDetail(id) {
+  currentTrip = TRIPS.find(t => t.id === id);
+  const t = currentTrip;
+  const scores = { 'Budget':t.price<=8?95:t.price<=12?75:45, 'Proximité':72, 'Fiabilité':Math.round(t.rating*20), 'Communauté':t.ai?90:75 };
+  const sColors = ['#2E7D32','#2C3E6B','#7A9E7E','#C8553D'];
+  document.getElementById('detail-content').innerHTML = `
+    <div class="card-block">
+      <div class="driver-row">
+        <div class="avatar" style="background:${t.color};width:52px;height:52px;font-size:18px">${t.initials}</div>
+        <div>
+          <div class="driver-name" style="font-size:17px">${t.driver}</div>
+          <div class="rating-row"><span class="star">★</span><span class="rating-txt">${t.rating} · Conducteur vérifié ✓</span></div>
+          ${t.ai?'<div class="ai-badge" style="margin-top:8px"><span>⭐ Recommandé par l\'IA</span></div>':''}
+        </div>
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="section-title">Trajet</div>
+      <div class="route-viz"><div class="route-dot"></div><div class="route-line"></div><span style="font-size:18px;margin:0 6px">🚗</span><div class="route-line"></div><div class="route-dot end"></div></div>
+      <div class="route-labels"><span>Départ</span><span>Université</span></div>
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--mid)"><span>⏰ Départ ${t.time}</span><span>🏁 Arrivée ~9h00</span></div>
+    </div>
+    <div class="card-block">
+      <div class="section-title">Détail du prix</div>
+      <div class="price-row"><span class="price-lbl">Distance</span><span class="price-val">12 km</span></div>
+      <div class="price-row"><span class="price-lbl">Carburant estimé</span><span class="price-val">4.8 DH</span></div>
+      <div class="price-row"><span class="price-lbl">Marge fixe</span><span class="price-val">2 DH</span></div>
+      <div class="divider"></div>
+      <div class="price-row">
+        <span style="font-size:14px;font-weight:700;color:var(--charcoal)">Total</span>
+        <span class="price-badge ${pClass(t.price)}" style="font-size:13px">${t.price} DH</span>
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--mid);margin-top:6px">Prix fixe · Aucune négociation</div>
+    </div>
+    <div class="card-block">
+      <div class="section-title">Score IA conducteur</div>
+      ${Object.entries(scores).map(([k,v],i)=>`
+        <div class="score-row">
+          <span class="score-label">${k}</span>
+          <div class="score-track"><div class="score-fill" style="width:${v}%;background:${sColors[i]}"></div></div>
+          <span class="score-pct">${v}%</span>
+        </div>`).join('')}
+    </div>
+    <button class="btn-primary" onclick="goConfirm()">Confirmer la réservation</button>
+    <button class="btn-outline">💬 Contacter le conducteur</button>
+    <div style="height:12px"></div>`;
+  show('detail');
+}
+
+function goConfirm() {
+  const t = currentTrip;
+  reserved[t.id] = true;
+  document.getElementById('confirm-content').innerHTML = `
+    <div class="check-circle">✓</div>
+    <div class="confirm-title">Réservation confirmée !</div>
+    <div class="confirm-sub">Votre place est réservée. Bonne route 🚗</div>
+    <div class="card-block" style="width:100%">
+      <div class="driver-row" style="margin-bottom:14px">
+        <div class="avatar" style="background:${t.color}">${t.initials}</div>
+        <div>
+          <div class="driver-name">${t.driver}</div>
+          <div class="rating-row"><span class="star">★</span><span class="rating-txt">${t.rating}</span></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="price-row"><span class="price-lbl">⏰ Départ</span><span class="price-val">${t.time}</span></div>
+      <div class="price-row"><span class="price-lbl">📍 Rendez-vous</span><span class="price-val">Place de la gare</span></div>
+      <div class="price-row"><span class="price-lbl">💰 Prix payé</span><span class="price-badge ${pClass(t.price)}">${t.price} DH</span></div>
+    </div>
+    <div class="countdown-card">
+      <span class="countdown-label">⏱ Départ dans</span>
+      <span class="countdown-time" id="cd">--:--</span>
+    </div>
+    <div class="sms-card">
+      <span style="font-size:20px">📱</span>
+      <div>
+        <div class="sms-title">Confirmation envoyée par SMS</div>
+        <div class="sms-sub">au +212 6XX XXX XXX</div>
+        <div class="sms-sub">Vous pouvez fermer l'application.</div>
+      </div>
+    </div>
+    <button class="home-btn" onclick="show('home')">🏠 Retour à l'accueil</button>`;
+  show('confirm');
+  if (cdInterval) clearInterval(cdInterval);
+  const [h,m] = t.time.replace('h',':').split(':').map(Number);
+  const dep = new Date(); dep.setHours(h, m||0, 0, 0);
+  const tick = () => {
+    const diff = Math.max(0, Math.floor((dep-Date.now())/1000));
+    const el = document.getElementById('cd');
+    if (el) el.textContent = String(Math.floor(diff/60)).padStart(2,'0')+':'+String(diff%60).padStart(2,'0');
+  };
+  tick(); cdInterval = setInterval(tick, 1000);
+}
+
+// ── Mode dégradé ──────────────────────────────────────────────────────────
+function toggleLBW() {
+  lbw = !lbw;
+  document.getElementById('lbw-dot').className = 'lbw-dot'+(lbw?' slow':'');
+  document.getElementById('lbw-txt').textContent = lbw ? 'Mode 2G actif' : 'Réseau normal';
+  show(lbw ? 'lbw' : 'home');
+}
+function lbwSearch() { lbwGo(document.getElementById('lbw-dest').value || 'Destination'); }
+function lbwGo(dest) { lbw=false; document.getElementById('lbw-dot').className='lbw-dot'; document.getElementById('lbw-txt').textContent='Réseau normal'; goResults(dest); }
+
+// ── Chatbot ───────────────────────────────────────────────────────────────
+function openBot() { document.getElementById('bot-modal').style.display='flex'; }
+function closeBot() {
+  document.getElementById('bot-modal').style.display='none';
+  document.getElementById('bot-input').value='';
+  document.getElementById('bot-results').style.display='none';
+  document.getElementById('bot-results').innerHTML='';
+  const btn=document.getElementById('bot-btn');
+  btn.textContent='Analyser avec l\'IA →'; btn.onclick=analyzeBot;
+}
+function fillBot(t) { document.getElementById('bot-input').value=t; }
+function extractBot(txt) {
+  const t=txt.toLowerCase();
+  const has=(...ws)=>ws.some(w=>t.includes(w));
+  let dest=null;
+  if(has('rabat')) dest='Rabat';
+  else if(has('casa','casablanca','كازا','kaza')) dest='Casablanca';
+  else if(has('kénitra','kenitra','القنيطرة')) dest='Kénitra';
+  else if(has('université','universite','fac','campus')) dest='Université';
+  else if(has('gare')) dest='Gare';
+  else if(has('hôpital','hopital')) dest='Hôpital';
+  let date=null;
+  if(has('demain','dman','غدا')) date='demain';
+  else if(has("aujourd'hui",'lyoum','اليوم')) date="aujourd'hui";
+  let heure=null;
+  const m=t.match(/\b([0-2]?\d)\s?(h|:)\s?([0-5]\d)?\b/);
+  if(m) heure=m[3]?`${m[1]}h${m[3]}`:`${m[1]}h`;
+  else if(has('matin','sbah','الصباح')) heure='matin';
+  else if(has('soir','lil','ليل')) heure='soir';
+  return {dest,date,heure};
+}
+function analyzeBot() {
+  const input=document.getElementById('bot-input').value.trim();
+  if(!input) return;
+  const btn=document.getElementById('bot-btn');
+  btn.textContent="L'IA analyse votre demande..."; btn.disabled=true;
+  setTimeout(()=>{
+    const ex=extractBot(input);
+    const res=document.getElementById('bot-results');
+    res.innerHTML='';
+    if(ex.dest) res.innerHTML+=`<span class="res-chip" style="background:var(--indigo)">📍 ${ex.dest}</span>`;
+    if(ex.date) res.innerHTML+=`<span class="res-chip" style="background:var(--sage)">📅 ${ex.date}</span>`;
+    if(ex.heure) res.innerHTML+=`<span class="res-chip" style="background:var(--terra)">🕗 ${ex.heure}</span>`;
+    if(!ex.dest&&!ex.date&&!ex.heure) res.innerHTML='<span style="font-size:12px;color:var(--mid)">Ajoutez une destination : Rabat, Casa, Gare…</span>';
+    res.style.display='flex';
+    btn.textContent='Voir les trajets →'; btn.disabled=false;
+    btn.onclick=()=>{ closeBot(); goResults(ex.dest||'Destination'); };
+  }, 1000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+updateTL();
+setInterval(updateTL, 60000);
+</script>
+</body>
+</html>
